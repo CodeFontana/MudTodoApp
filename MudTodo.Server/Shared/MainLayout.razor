@@ -1,14 +1,15 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="currentTheme" />
+<MudThemeProvider Theme="_currentTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">MudTodo</MudText>
         <MudSpacer />
-        @if (currentTheme == defaultTheme)
+        @if (_currentTheme == defaultTheme)
         {
             <MudButton OnClick="@((e) => DarkMode())"><MudIcon Icon="@Icons.Material.Filled.DarkMode"></MudIcon></MudButton>
         }
@@ -17,16 +18,42 @@
             <MudButton OnClick="@((e) => DarkMode())"><MudIcon Icon="@Icons.Material.Filled.LightMode"></MudIcon></MudButton>
         }
     </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="pt-16">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4">
             @Body
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
 @code {
-    MudTheme currentTheme = new();
-    
+    private MudTheme _currentTheme = new();
+    private bool _drawerOpen = true;
+
+    protected override void OnInitialized()
+    {
+        _currentTheme = darkTheme;
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void DarkMode()
+    {
+        if (_currentTheme == defaultTheme)
+        {
+            _currentTheme = darkTheme;
+        }
+        else
+        {
+            _currentTheme = defaultTheme;
+        }
+    }
+
     MudTheme defaultTheme = new()
     {
         Palette = new()
@@ -34,23 +61,6 @@
             Black = "#272c34"
         }
     };
-
-    protected override void OnInitialized()
-    {
-        currentTheme = darkTheme;
-    }
-
-    void DarkMode()
-    {
-        if (currentTheme == defaultTheme)
-        {
-            currentTheme = darkTheme;
-        }
-        else
-        {
-            currentTheme = defaultTheme;
-        }
-    }
 
     MudTheme darkTheme = new()
     {
