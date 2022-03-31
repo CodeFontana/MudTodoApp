@@ -1,6 +1,6 @@
-﻿using MudTodo.Shared.Models;
+﻿using MudTodo.Shared.Entities;
 
-namespace MudTodo.Shared.Interfaces;
+namespace MudTodo.Shared;
 
 public interface ITodoRepository
 {

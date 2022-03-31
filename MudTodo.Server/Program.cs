@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
-using MudTodo.Shared.Data;
-using MudTodo.Shared.Interfaces;
+using MudTodo.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +10,15 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddDbContext<TodoDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+    options.UseSqlite($@"Data Source={Environment.CurrentDirectory}\Todo.db;");
 });
 builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
+
+using IServiceScope scope = app.Services.CreateScope();
+TodoDbContext db = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+db.Database.Migrate();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

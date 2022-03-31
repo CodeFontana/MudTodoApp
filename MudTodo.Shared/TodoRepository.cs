@@ -1,13 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MudTodo.Shared.Interfaces;
-using MudTodo.Shared.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MudTodo.Shared.Entities;
 
-namespace MudTodo.Shared.Data;
+namespace MudTodo.Shared;
 
 public class TodoRepository : ITodoRepository
 {
