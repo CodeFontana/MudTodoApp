@@ -8,13 +8,15 @@
 }
 
 <MudGrid Class="mb-10">
-    <MudItem xs="12" sm="6" md="4"  >
-        <MudTextField @bind-Value="NewTodo" Label="Add new task..." Variant="Variant.Text"></MudTextField>
+    <MudItem xs="12" sm="6" md="4">
+        <EditForm Model="@_newItem">
+            <MudTextField T="string" @bind-Value="_newItem.ItemName" Label="Add new task..." Variant="Variant.Text"></MudTextField>
+            <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Class="my-5" OnClick="AddTask">Add</MudButton>
+        </EditForm>
     </MudItem>
-    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Class="my-5" OnClick="AddTask">Add</MudButton>
 </MudGrid>
 
-<MudTable Items="@_todoItems" Bordered="true" Striped="true">
+<MudTable Items="@_todoItems" Bordered="true" Striped="true" Dense="true">
     <ToolBarContent>
         <MudText Typo="Typo.h5">Todo List</MudText>
         <MudSpacer />
@@ -26,18 +28,19 @@
         <MudTh>Delete</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Completed"><MudCheckBox T="bool" Checked="@context.Completed" CheckedChanged="() => UpdateTask(context)" Color="Color.Primary"></MudCheckBox></MudTd>    
         
-        @if (context.Completed)
-        {
-            <MudTd DataLabel="Task"><MudText Typo="Typo.h6" Style="font-style: italic; text-decoration: line-through;">@context.ItemName</MudText></MudTd>    
-        }
-        else
-        {
-            <MudTd DataLabel="Task"><MudText Typo="Typo.h6">@context.ItemName</MudText></MudTd>
-        }
-        
-        <MudTd DataLabel="Delete"><MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" OnClick="() => DeleteTask(context)"></MudIconButton></MudTd>
+        <MudTd DataLabel="Completed">
+            <MudCheckBox T="bool" Checked="@context.Completed" CheckedChanged="() => UpdateTask(context)" Color="Color.Primary" Size="Size.Large" />
+        </MudTd>
+
+        <MudTd DataLabel="Task">
+            <MudText Typo="Typo.h6" Style="@(context.Completed ? "font-style: italic; text-decoration: line-through;" : "")">@context.ItemName</MudText>
+        </MudTd>
+
+        <MudTd DataLabel="Delete">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" OnClick="() => DeleteTask(context)" Size="Size.Large" Color="Color.Error" />
+        </MudTd>
+
     </RowTemplate>
     <PagerContent>
         <MudTablePager />
@@ -49,8 +52,7 @@
     private string _searchString = "";
     private string _errorText = "";
     private bool _showError = false;
-
-    public string NewTodo { get; set; }
+    private Todo _newItem = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,18 +63,12 @@
     {
         _showError = false;
 
-        Todo newItem = new()
-        {
-            Completed = false,
-            ItemName = NewTodo
-        };
-
-        bool result = await TodoRepo.CreateAsync(newItem);
+        bool result = await TodoRepo.CreateAsync(_newItem);
 
         if (result)
         {
             _todoItems = await TodoRepo.GetAllAsync();
-            NewTodo = "";
+            _newItem = new();
         }
         else
         {
