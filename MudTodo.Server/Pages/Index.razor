@@ -1,4 +1,113 @@
 ﻿@page "/"
+@inject ITodoRepository TodoRepo
 
-<PageTitle>Hello, world!</PageTitle>
-<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Hello, world!</MudText>
+@if (_showError)
+{
+    <MudAlert Severity="Severity.Error">@_errorText</MudAlert>
+}
+
+<MudGrid Class="mb-10">
+    <MudItem xs="12" sm="6" md="4">
+        <EditForm Model="@_newItem">
+            <MudTextField T="string" @bind-Value="_newItem.ItemName" Label="Add new task..." Variant="Variant.Text"></MudTextField>
+            <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Class="my-5" OnClick="AddTask">Add</MudButton>
+        </EditForm>
+    </MudItem>
+</MudGrid>
+
+<MudTable Items="@_todoItems" Bordered="true" Striped="true" Dense="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h5">Todo List</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Completed</MudTh>
+        <MudTh>Task</MudTh>
+        <MudTh>Delete</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        
+        <MudTd DataLabel="Completed">
+            <MudCheckBox T="bool" Checked="@context.Completed" CheckedChanged="() => UpdateTask(context)" Color="Color.Primary" Size="Size.Large" />
+        </MudTd>
+
+        <MudTd DataLabel="Task">
+            <MudText Typo="Typo.h6" Style="@(context.Completed ? "font-style: italic; text-decoration: line-through;" : "")">@context.ItemName</MudText>
+        </MudTd>
+
+        <MudTd DataLabel="Delete">
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" OnClick="() => DeleteTask(context)" Size="Size.Large" Color="Color.Error" />
+        </MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Todo> _todoItems = new();
+    private string _searchString = "";
+    private string _errorText = "";
+    private bool _showError = false;
+    private Todo _newItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _todoItems = await TodoRepo.GetAllAsync();
+    }
+
+    private async Task AddTask()
+    {
+        _showError = false;
+
+        bool result = await TodoRepo.CreateAsync(_newItem);
+
+        if (result)
+        {
+            _todoItems = await TodoRepo.GetAllAsync();
+            _newItem = new();
+        }
+        else
+        {
+            _errorText = "Failed to add task";
+            _showError = true;
+        }
+    }
+
+    private async Task DeleteTask(Todo deleteItem)
+    {
+        _showError = false;
+
+        bool result = await TodoRepo.DeleteAsync(deleteItem);
+
+        if (result)
+        {
+            _todoItems = await TodoRepo.GetAllAsync();
+        }
+        else
+        {
+            _errorText = "Failed to delete task";
+            _showError = true;
+        }
+    }
+
+    private async Task UpdateTask(Todo updateItem)
+    {
+        _showError = false;
+
+        updateItem.Completed = !updateItem.Completed;
+        bool result = await TodoRepo.UpdateAsync(updateItem);
+
+        if (result)
+        {
+            _todoItems = await TodoRepo.GetAllAsync();
+        }
+        else
+        {
+            _errorText = "Failed to update task";
+            _showError = true;
+        }
+    }
+}
